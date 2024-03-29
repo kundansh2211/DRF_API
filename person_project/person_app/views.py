@@ -9,10 +9,15 @@ from django.core.mail import send_mail
 
 class PersonAPI(APIView):
     def get(self, request, pk=None):
-        obj = get_object_or_404(Person, pk=pk)
-        serializer = PersonSerializer(obj)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-
+        if pk is not None:
+            person = get_object_or_404(Person, pk=pk)
+            serializer = PersonSerializer(person)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        else:
+            queryset = Person.objects.all()
+            serializer = PersonSerializer(queryset, many=True)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+    
     def post(self, request):
         serializer = PersonSerializer(data=request.data)
         if serializer.is_valid():
@@ -57,3 +62,4 @@ class PersonAPI(APIView):
         send_mail(subject, message, email_from, [obj.email])
         obj.delete()
         return Response(data=None, status=status.HTTP_204_NO_CONTENT)
+    
